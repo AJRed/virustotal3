@@ -14,6 +14,26 @@ TPL_SECTION = "[*] ({0}):"
 TPL_MATCH = "\t\_ Results: {0}/{1} {2}\n\t   SHA256: {3}\n\t   Scan Date: {4}"
 TPL_SIGNATURES = "\t   Signatures:\n\t\t{0}"
 
+def config():
+    configfile = open("virustotal.conf","r")
+    content = configfile.read()
+    lines = content.split('\n')
+    for line in lines:
+        line = line.replace(" ", "")
+        line = line.split("=")
+        if line[0] == "API_KEY":
+            if len(line[1]) > 65:
+                print("[-] Error the API-Key is not valid")
+                print(len(line[1]) )
+                exit(1)
+            try:
+                int(line[1], 16)
+            except:
+                print("[-] Error the API-Key is not valid")
+                exit(1)
+            return line[1]
+            
+
 def color(text, color_code):
     if sys.platform == "win32" and os.getenv("TERM") != "xterm":
         return text
@@ -156,6 +176,7 @@ class Scanner(object):
         self.scan()
 
 if __name__ == '__main__':
+    API_KEY = config()
     parser = argparse.ArgumentParser()
     parser.add_argument('path', type=str, help='Path to the file or folder to lookup on VirusTotal')
     parser.add_argument('--key', type=str, action='store', default=API_KEY, help='VirusTotal API key')
