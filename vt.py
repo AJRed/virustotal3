@@ -9,27 +9,38 @@ import argparse
 
 VIRUSTOTAL_FILE_URL = 'https://www.virustotal.com/vtapi/v2/file/report'
 API_KEY = ''
+CONFIG_DIR = '/etc/virustotal.conf'
+CONFIG_HOME_DIR = os.getenv("HOME") + "/.config/virustotal/virustotal.conf"
 
 TPL_SECTION = "[*] ({0}):"
 TPL_MATCH = "\t\_ Results: {0}/{1} {2}\n\t   SHA256: {3}\n\t   Scan Date: {4}"
 TPL_SIGNATURES = "\t   Signatures:\n\t\t{0}"
 
 def config():
-    configfile = open("virustotal.conf","r")
+    if os.path.exists(CONFIG_HOME_DIR):
+        config_path = CONFIG_HOME_DIR
+    elif os.path.exists(CONFIG_DIR):
+        config_path = CONFIG_DIR
+    else:
+        print("[!] ERROR: no config file")
+        exit(1)
+    configfile = open(config_path,"r")
     content = configfile.read()
     lines = content.split('\n')
     for line in lines:
         line = line.replace(" ", "")
         line = line.split("=")
         if line[0] == "API_KEY":
+            if len(line) < 2:
+                print("[!] ERROR: You specified no API-Key in the config")
+                exit(1)
             if len(line[1]) > 65:
-                print("[-] Error the API-Key is not valid")
-                print(len(line[1]) )
+                print("[!] ERROR: the API-Key is not valid")
                 exit(1)
             try:
                 int(line[1], 16)
             except:
-                print("[-] Error the API-Key is not valid")
+                print("[!] ERROR: the API-Key is not valid")
                 exit(1)
             return line[1]
             
