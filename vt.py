@@ -187,13 +187,14 @@ class Scanner(object):
         self.scan()
 
 if __name__ == '__main__':
-    API_KEY = config()
     parser = argparse.ArgumentParser()
     parser.add_argument('path', type=str, help='Path to the file or folder to lookup on VirusTotal')
     parser.add_argument('--key', type=str, action='store', default=API_KEY, help='VirusTotal API key')
 
     try:
         args = parser.parse_args()
+        if args.key == "":
+            args.key = config()
     except IOError as e:
         parser.error(e)
         sys.exit()
