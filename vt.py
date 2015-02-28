@@ -9,18 +9,19 @@ import argparse
 
 VIRUSTOTAL_FILE_URL = 'https://www.virustotal.com/vtapi/v2/file/report'
 API_KEY = ''
-CONFIG_DIR = '/etc/virustotal.conf'
-CONFIG_HOME_DIR = os.getenv("HOME") + "/.config/virustotal/virustotal.conf"
+CONFIG_FILE = 'virustotal.conf'
+CONFIG_GLOBAL_PATH = '/etc/' + CONFIG_FILE
+CONFIG_HOME_PATH = os.getenv("HOME") + "/.config/virustotal/" + CONFIG_FILE
 
 TPL_SECTION = "[*] ({0}):"
 TPL_MATCH = "\t\_ Results: {0}/{1} {2}\n\t   SHA256: {3}\n\t   Scan Date: {4}"
 TPL_SIGNATURES = "\t   Signatures:\n\t\t{0}"
 
 def config():
-    if os.path.exists(CONFIG_HOME_DIR):
-        config_path = CONFIG_HOME_DIR
-    elif os.path.exists(CONFIG_DIR):
-        config_path = CONFIG_DIR
+    if os.path.exists(CONFIG_HOME_PATH):
+        config_path = CONFIG_HOME_PATH
+    elif os.path.exists(CONFIG_GLOBAL_PATH):
+        config_path = CONFIG_GLOBAL_PATH
     else:
         print("[!] ERROR: no config file")
         exit(1)
