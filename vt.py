@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 import os
 import sys
 import json
 import urllib
-import urllib2
+#import urllib2
 import hashlib
 import argparse
 
