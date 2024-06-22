@@ -5,7 +5,6 @@ import json
 import urllib
 import urllib.request
 import urllib.parse
-# import urllib2
 import hashlib
 import argparse
 
