@@ -3,7 +3,9 @@ import os
 import sys
 import json
 import urllib
-import urllib2
+import urllib.request
+import urllib.parse
+# import urllib2
 import hashlib
 import argparse
 
@@ -11,11 +13,13 @@ VIRUSTOTAL_FILE_URL = 'https://www.virustotal.com/vtapi/v2/file/report'
 API_KEY = ''
 CONFIG_FILE = 'virustotal.conf'
 CONFIG_GLOBAL_PATH = '/etc/' + CONFIG_FILE
-CONFIG_HOME_PATH = os.getenv("HOME") + "/.config/virustotal/" + CONFIG_FILE
+CONFIG_HOME_PATH = f"{os.getenv("HOME")}/.config/virustotal/{CONFIG_FILE}"
+print(CONFIG_HOME_PATH)
 
 TPL_SECTION = "[*] ({0}):"
-TPL_MATCH = "\t\_ Results: {0}/{1} {2}\n\t   SHA256: {3}\n\t   Scan Date: {4}"
+TPL_MATCH = "\t_ Results: {0}/{1} {2}\n\t   SHA256: {3}\n\t   Scan Date: {4}"
 TPL_SIGNATURES = "\t   Signatures:\n\t\t{0}"
+
 
 def config():
     if os.path.exists(CONFIG_HOME_PATH):
@@ -25,7 +29,7 @@ def config():
     else:
         print("[!] ERROR: no config file")
         exit(1)
-    configfile = open(config_path,"r")
+    configfile = open(config_path, "r")
     content = configfile.read()
     lines = content.split('\n')
     for line in lines:
@@ -44,7 +48,7 @@ def config():
                 print("[!] ERROR: the API-Key is not valid")
                 exit(1)
             return line[1]
-            
+
 
 def color(text, color_code):
     if sys.platform == "win32" and os.getenv("TERM") != "xterm":
@@ -52,11 +56,14 @@ def color(text, color_code):
 
     return '\x1b[%dm%s\x1b[0m' % (color_code, text)
 
+
 def red(text):
     return color(text, 31)
 
+
 def yellow(text):
     return color(text, 33)
+
 
 class Hash(object):
     def __init__(self, path):
@@ -85,6 +92,7 @@ class Hash(object):
         self.md5 = md5.hexdigest()
         self.sha256 = sha256.hexdigest()
 
+
 class Scanner(object):
     def __init__(self, key, path):
         self.key = key
@@ -112,10 +120,10 @@ class Scanner(object):
             hashes.calculate()
 
             self.list.append({
-                'path' : path,
-                'md5' : hashes.md5,
-                'sha256' : hashes.sha256
-                })
+                'path': path,
+                'md5': hashes.md5,
+                'sha256': hashes.sha256
+            })
 
     def scan(self):
         hashes = []
@@ -123,17 +131,20 @@ class Scanner(object):
             if entry['sha256'] not in hashes:
                 hashes.append(entry['sha256'])
 
-        data = urllib.urlencode({
-            'resource' : ','.join(hashes),
-            'apikey' : self.key
-            })
+        data = urllib.parse.urlencode({
+            'resource': ','.join(hashes),
+            'apikey': self.key
+        }).encode()
 
         try:
-            request = urllib2.Request(VIRUSTOTAL_FILE_URL, data)
-            response = urllib2.urlopen(request)
+            # request = urllib2.Request(VIRUSTOTAL_FILE_URL, data)
+            request = urllib.request.Request(VIRUSTOTAL_FILE_URL, data)
+            # response = urllib2.urlopen(request)
+            response = urllib.request.urlopen(request)
             report = json.loads(response.read())
         except Exception as e:
-            print(red("[!] ERROR: Cannot obtain results from VirusTotal: {0}\n".format(e)))
+            print(
+                red("[!] ERROR: Cannot obtain results from VirusTotal: {0}\n".format(e)))
             return
 
         results = []
@@ -162,7 +173,7 @@ class Scanner(object):
                 for av, scan in entry['scans'].items():
                     if scan['result']:
                         signatures.append(scan['result'])
-                
+
                 if entry['positives'] > 0:
                     print(TPL_MATCH.format(
                         entry['positives'],
@@ -170,27 +181,32 @@ class Scanner(object):
                         red('DETECTED'),
                         entry['resource'],
                         entry['scan_date']
-                        ))
+                    ))
 
                     if entry['positives'] > 0:
                         print(TPL_SIGNATURES.format('\n\t\t'.join(signatures)))
 
     def run(self):
         if not self.key:
-            print(red("[!] ERROR: You didn't specify a valid VirusTotal API key.\n"))
+            print(
+                red("[!] ERROR: You didn't specify a valid VirusTotal API key.\n"))
             return
 
         if not os.path.exists(self.path):
-            print(red("[!] ERROR: The target path {0} does not exist.\n".format(self.path)))
+            print(
+                red("[!] ERROR: The target path {0} does not exist.\n".format(self.path)))
             return
 
         self.populate()
         self.scan()
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('path', type=str, help='Path to the file or folder to lookup on VirusTotal')
-    parser.add_argument('--key', type=str, action='store', default=API_KEY, help='VirusTotal API key')
+    parser.add_argument(
+        'path', type=str, help='Path to the file or folder to lookup on VirusTotal')
+    parser.add_argument('--key', type=str, action='store',
+                        default=API_KEY, help='VirusTotal API key')
 
     try:
         args = parser.parse_args()
