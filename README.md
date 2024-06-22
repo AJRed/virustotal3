@@ -1,5 +1,7 @@
-virustotal
+virustotal3
 ==========
+
+Fork of shibumi/virustotal updated to work under modern Python3
 
 Command-line utility to automatically lookup on VirusTotal all files recursively contained in a directory.
 You can also specify the path to a single file directly:
